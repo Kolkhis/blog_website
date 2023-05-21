@@ -13,6 +13,8 @@ from flask_gravatar import Gravatar
 from functools import wraps
 import os
 
+from email_manager import EmailManager
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('APP_SECRET_KEY')
 ckeditor = CKEditor(app)
@@ -63,10 +65,7 @@ class User(UserMixin, db.Model):
 
     # Relationship
     posts = relationship('BlogPost', back_populates='author')
-    user_comments = relationship('Comment', back_populates='user')  # this is now a Comment object
-
-    # backref (lazy rel)
-    # posts = relationship('BlogPost', backref='author')
+    user_comments = relationship('Comment', back_populates='user')
 
 
 class Comment(db.Model):
@@ -74,10 +73,8 @@ class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.String(500), nullable=False)
 
-    #  Keys go here in Comment, since Users can have MANY Comments, but Comments can only have ONE User.
-    #  One to Many - Only one parent, but many children. The children get the parents' keys.
     user_id = db.mapped_column(db.ForeignKey('users.id'))
-    user = relationship('User', back_populates='user_comments')  # this gives the Comment obj to the user obj
+    user = relationship('User', back_populates='user_comments')
 
     post_id = db.mapped_column(db.ForeignKey('blog_posts.id'))
     post = relationship('BlogPost', back_populates='post_comments')  # Comment is now a property of a BlogPost object
@@ -136,7 +133,6 @@ def register():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        # user = db.session.query(User, User.email == request.form.get('email')).first()
         user = User.query.filter_by(email=request.form['email']).first()
         if user:
             if check_password_hash(pwhash=user.password, password=request.form['password']):
@@ -185,13 +181,27 @@ def about():
     return render_template("about.html")
 
 
-@app.route("/contact")
+@app.route('/contact', methods=['GET', 'POST'])
 def contact():
-    return render_template("contact.html")
+    if request.method == 'POST':
+        message_data = request.form
+        name = current_user.name
+        email = request.form['email']
+        phone = request.form['phone'] if request.form['phone'] else None
+        message = request.form['message']
+        data = f'Message request received. ' \
+               f'name:\n{name}<br />\nemail:\n{email}<br />\n' \
+               f'phone:{phone}<br />\nmessage:\n{message}'
+        email_manager = EmailManager()
+        email_manager.send_email(data=message_data)
+        flask.flash('Your message was sent!')
+        return redirect(url_for('contact'))
+    return render_template('contact.html')
+
 
 
 @app.route("/new-post", methods=['GET', 'POST'])
-@admin_only
+@login_required
 def add_new_post():
     form = CreatePostForm()
 
@@ -214,7 +224,6 @@ def add_new_post():
 @admin_only
 def edit_post(post_id):
     post = db.session.get(BlogPost, post_id)
-    # post = BlogPost.query.get(post_id)
     edit_form = CreatePostForm(
         title=post.title,
         subtitle=post.subtitle,
@@ -238,7 +247,6 @@ def edit_post(post_id):
 @admin_only
 def delete_post(post_id):
     post_to_delete = db.session.get(BlogPost, post_id)
-    # post_to_delete = BlogPost.query.filter_by(id=post_id)
     db.session.delete(post_to_delete)
     db.session.commit()
     return redirect(url_for('get_all_posts'))

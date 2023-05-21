@@ -22,6 +22,8 @@ Bootstrap(app)
 
 # Manage Database:
 db_url = os.environ.get('DATABASE_URL', 'sqlite:///blog.db')
+
+# Correct env variable to be compliant with SQLAlchemy.
 if db_url[0] == 'p':
     db_url = db_url.replace('postgres', 'postgresql')
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url

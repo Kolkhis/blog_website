@@ -14,7 +14,7 @@ from functools import wraps
 import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ['APP_SECRET_KEY']
+app.config['SECRET_KEY'] = os.getenv('APP_SECRET_KEY')
 ckeditor = CKEditor(app)
 Bootstrap(app)
 

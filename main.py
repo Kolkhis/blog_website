@@ -21,7 +21,7 @@ ckeditor = CKEditor(app)
 Bootstrap(app)
 
 # Manage Database:
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///blog.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -184,17 +184,20 @@ def about():
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
     if request.method == 'POST':
-        message_data = request.form
-        name = current_user.name
-        email = request.form['email']
-        phone = request.form['phone'] if request.form['phone'] else None
-        message = request.form['message']
-        data = f'Message request received. ' \
-               f'name:\n{name}<br />\nemail:\n{email}<br />\n' \
-               f'phone:{phone}<br />\nmessage:\n{message}'
-        email_manager = EmailManager()
-        email_manager.send_email(data=message_data)
-        flask.flash('Your message was sent!')
+        if current_user.is_authenticated:
+            message_data = request.form
+            name = current_user.name
+            email = request.form['email']
+            phone = request.form['phone'] if request.form['phone'] else None
+            message = request.form['message']
+            data = f'Message request received. ' \
+                   f'name:\n{name}<br />\nemail:\n{email}<br />\n' \
+                   f'phone:{phone}<br />\nmessage:\n{message}'
+            email_manager = EmailManager()
+            email_manager.send_email(data=message_data)
+            flask.flash('Your message was sent!')
+            return redirect(url_for('contact'))
+        flask.flash('You need to be logged in to send an email!')
         return redirect(url_for('contact'))
     return render_template('contact.html')
 

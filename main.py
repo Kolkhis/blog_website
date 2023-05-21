@@ -11,9 +11,10 @@ from flask_login import UserMixin, login_user, LoginManager, login_required, cur
 from forms import CreatePostForm, RegisterUserForm, LoginForm, CommentForm
 from flask_gravatar import Gravatar
 from functools import wraps
+import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'd35b1f26fd1f409b3fbc908339bf11683620116a2ff574780e548fd91f096b0a'
+app.config['SECRET_KEY'] = os.environ['APP_SECRET_KEY']
 ckeditor = CKEditor(app)
 Bootstrap(app)
 
@@ -32,27 +33,8 @@ gravatar = Gravatar(app, size=100)
 def user_loader(user_id):
     return db.session.get(User, user_id)
 
-"""
-    SQLAlchemy provides the hybrid_property decorator that allows you to create a property 
-    that behaves like an attribute but is computed dynamically based on other attributes.
-    `from sqlalchemy.ext.hybrid import hybrid`
-    
-    Format:
-    
-    class Parent(db.Model):
-        __tablename__ = 'parents'
-        id = db.Column(db.Integer, primary_key=True)
-        children = relationship(Child, 'children')
-        
-    class Child(db.Model):
-        __tablename__ = 'children'
-        id = db.Column(db.Integer, primary_key=True)
-        child_id = db.mapped_column(db.ForeignKey('parent.id'))
-        parents = relationship(Parent, 'parents')
-    """
 
 # Tables:
-
 class BlogPost(db.Model):
     __tablename__ = "blog_posts"
     id = db.Column(db.Integer, primary_key=True)

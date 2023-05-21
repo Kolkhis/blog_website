@@ -33,4 +33,4 @@ class EmailManager:
         with smtplib.SMTP('smtp.gmail.com') as server:
             server.starttls()
             server.login(user=BOT_EMAIL, password=APP_PASSWORD)
-            server.sendmail(from_addr=BOT_EMAIL, to_addrs=BOT_EMAIL, msg=self.message.as_string())
+            server.sendmail(from_addr=BOT_EMAIL, to_addrs=BOT_EMAIL, msg=self.msg_text)

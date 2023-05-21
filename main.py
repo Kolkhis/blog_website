@@ -83,8 +83,8 @@ class Comment(db.Model):
     post = relationship('BlogPost', back_populates='post_comments')  # Comment is now a property of a BlogPost object
 
 
-# with app.app_context():
-#     db.create_all()
+with app.app_context():
+    db.create_all()
 
 
 # Admin checker

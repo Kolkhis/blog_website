@@ -161,17 +161,13 @@ def show_post(post_id):
         if current_user.is_anonymous:
             flask.flash('You need to be logged in to post a comment!')
             return redirect(url_for('login'))
-        print("Validated the comment submission form")
         new_comment = Comment(text=request.form.get('text'),
                               user=current_user,
                               post=requested_post
                               )
-        print(f"New comment object: {new_comment}")
         if new_comment:
-            print(f"Attempting to add {new_comment} to database.")
             db.session.add(new_comment)
             db.session.commit()
-            print(f"{new_comment} added to database.")
             return redirect(url_for('show_post', post_id=requested_post.id))
     return render_template("post.html", post=requested_post, comment_form=comment_form)
 
@@ -188,8 +184,15 @@ def contact():
             message_data = request.form
             name = current_user.name
             email = request.form['email']
+            registered_email = current_user.email
             phone = request.form['phone'] if request.form['phone'] else None
             message = request.form['message']
+            message_data = {'name': name,
+                            'phone': phone,
+                            'email': email,
+                            'message': message,
+                            'registered_email': registered_email
+                            }
             data = f'Message request received. ' \
                    f'name:\n{name}<br />\nemail:\n{email}<br />\n' \
                    f'phone:{phone}<br />\nmessage:\n{message}'
@@ -207,7 +210,6 @@ def contact():
 @login_required
 def add_new_post():
     form = CreatePostForm()
-
     if form.validate_on_submit():
         new_post = BlogPost(
             title=form.title.data,
@@ -224,9 +226,14 @@ def add_new_post():
 
 
 @app.route("/edit-post/<int:post_id>", methods=['GET', 'POST'])
-@admin_only
 def edit_post(post_id):
     post = db.session.get(BlogPost, post_id)
+    if current_user.is_anonymous:
+        flask.flash('You need to login to edit your post!')
+        return redirect(url_for('login'))
+    if current_user != post.author:
+        flask.flash("This post isn't yours to edit!")
+        return redirect(url_for('show_post', post_id=post.id))
     edit_form = CreatePostForm(
         title=post.title,
         subtitle=post.subtitle,

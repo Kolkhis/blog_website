@@ -23,6 +23,15 @@
     <div class="container">
       <div class="row">
         <div class="col-lg-8 col-md-10 mx-auto">
+          {% with messages = get_flashed_messages() %}
+          {% if messages %}
+          {% for message in messages %}
+          <ul>
+            <li style="color:red;">{{ message }}</li>
+          </ul>
+          {% endfor %}
+          {% endif %}
+          {% endwith %}
             {{ post.body|safe }}
           <hr>
 
@@ -57,12 +66,11 @@
             {{ ckeditor.config(name='text') }}
             </form>
             {% else %}
-            <h3 class="subheading">
-              You need to
-              <a href="{{ url_for('login') }}" style="color:blue;">login</a> or
+            <h4 class="subheading">
+              <a href="{{ url_for('login') }}" style="color:blue;">Log in</a> or
               <a href="{{ url_for('register') }}" style="color:blue;">register</a>
-              in order to post a comment.
-            </h3>
+              to post a comment.
+            </h4>
             {% endif %}
 
             </div>

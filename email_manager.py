@@ -10,14 +10,16 @@ class EmailManager:
         self.msg_text = ''
 
     def create_email(self, data: dict):
-        """Formats the email as a MIMEMultipart message."""
+        """Formats the email as a message."""
         self.msg_text = f"From:{data['email']}\n" \
                         f"To: {BOT_EMAIL}\n" \
                         f"Subject: Message from {data['name']}, from the blog site.\n\n" \
+                        f"Registered Email:{data['registered_email']}" \
+                        f"Phome number: {data['phone']}" \
                         f"{data['message']}"
 
     def send_email(self, data: dict):
-        """Creates an email from BOT_EMAIL and sends it to myself"""
+        """Creates an email from BOT_EMAIL and sends it to itself"""
         self.create_email(data)
         with smtplib.SMTP('smtp.gmail.com') as server:
             server.starttls()

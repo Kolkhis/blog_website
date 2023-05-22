@@ -52,11 +52,12 @@
                     </div>
                     <div class="commentText">
                       <p>{{ comment.text | safe() }}</p>
-                      <span class="date sub-text">{{ comment.user.name }}</span>
+                      <span class="date sub-text">{{ comment.user.name }}
+                      {% if current_user.id == 1 or comment.user.id == current_user.id %}
+                      <a title="Delete Comment" href="{{url_for('delete_comment', comment_id=comment.id) }}" style="color:red;"> ✘</a>
+                      {% endif %}
+                        </span>
                     </div>
-                  {% if current_user.id == 1 or comment.user.id == current_user.id %}
-                  <a href="{{url_for('delete_comment', comment_id=comment.id) }}" style="color:red;">✘</a>
-                  {% endif %}
                 </li>
                 {% endfor %}
               </ul>
